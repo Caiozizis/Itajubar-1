@@ -1,6 +1,6 @@
 ;CONTROLE DO FRED
 
-		#INCLUDE 	<P16F877.INC>
+		#INCLUDE 	<P16F877A.INC>
 
 		ORG		0X00			;Onde iniciar a compilação
 
