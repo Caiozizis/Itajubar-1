@@ -1,0 +1,90 @@
+;CONTROLE DO FRED
+
+		#INCLUDE 	<P16F877.INC>
+
+		ORG		0X00			;Onde iniciar a compilação
+
+CONFIG		BSF		STATUS,RP0		;Navegar no BANK 1
+		MOVLW		0X00			;Definir o ...
+		MOVWF		TRISC			;...Portal C e o ...
+		MOVWF		TRISD			;... Portal D
+		MOVLW		0X06			;Configurar o Portal ...
+		MOVWF		ADCON1			;... A como Digital
+
+		BCF		STATUS, RP0		;Voltar ao BANK 0
+
+
+; * * * * * * * * * * * *  P  R  O  G  R  A  M  A        P  R  I   N  C  I  P  A  L    * * * * * * * * * * *  * * 
+
+		MOVLW		0XFF			;Define  ...
+		MOVWF		PORTC			;...todos os LED's off
+		
+
+SCAN		MOVLW		0XF7			;Seleciona a ...
+		MOVWF		PORTD			; ... tecla 'F'
+		BTFSS		PORTB,3			;Direita?
+		GOTO		DIR			;Sim 
+		MOVLW		0XFB			;Seleciona a ...
+		MOVWF		PORTC			;... tecla 'A'
+		BTFSS		PORTB,2			;Esquerda?
+		GOTO		ESQ			;Sim
+		MOVLW		0XFC			;Seleciona a...	
+		MOVWF		PORTC			;Próxima tecla.
+		BTFSS		PORTB,2		        ;Obstáculo?
+		GOTO		ROTINA			;Sim	
+		BCF		PORTD,0			;Motor girando pra frente
+		BCF		PORTD,1			;Motor girando pra frente
+		GOTO		SCAN			;Nenhuma. Então voltar 
+
+
+;* * * * * * * * * * * * * * * *  C O N T R O L E      D  I  R  E  I  T  A    * * * * * * *  * * * * *  * * * *
+
+DIR	        
+B_DIR		BCF		PORTD,1			;Vira para a... 
+		BSF		PORTD,0			;...esquerda
+		CALL		DELAY			;Pausa para sensibilizar a retina
+		BTFSC		PORTB,3			;Parar?
+		GOTO		SCAN			;Sim, voltar a varrer teclas
+		GOTO		B_DIR			;Repetir o processo
+
+	
+;* * * * * * * * * * * * * * * *  C O N T R O L E      E S Q U E R D A  * * * * * * *  * * * * *  * * * *
+
+ESQ	        
+B_ESQ		BCF		PORTD,0			;Vira para a... 
+		BSF		PORTD,1			;...direita
+		CALL		DELAY			;Pausa para sensibilizar a retina
+		BTFSC		PORTB,2			;Parar?
+		GOTO		SCAN			;Sim, voltar a varrer teclas
+		GOTO		B_ESQ			;Repetir o processo
+
+;* * * * * * * * * * * * * * * * * * * * * * * * *   R O T I N A   * * * * * * * * * * * * * * * * * * * * * * * *
+ROTINA		BCF		PORTD,0			;Vira para a...		
+		BSF		PORTD,1			;...direita
+		CALL		DELAY			;Pausa para..
+		CALL		DELAY			;...efetuar a...
+		CALL		DELAY			;...curva
+		BCF		PORTD,1			;Vira para a ...
+		BSF		PORTD,0			;...esquerda
+		CALL		DELAY			;Pausa para...
+		CALL		DELAY			;...efetuar...
+		CALL		DELAY			;...curva
+		BCF		PORTD,0			;Vira novamente para...
+		BSF		PORTD,1			;...direita
+		CALL		DELAY			;Pausa para...
+		CALL		DELAY			;...efetuar...
+		CALL		DELAY			;...curva
+		CALL		SCAN			;Varrer teclas
+
+;* * * * * * * * * * * * * * * * * * * * * * * *   A  T  R  A  S  O    * * * * * * * * * * * * * * * * * * * * * *
+
+DELAY
+LOOP		CLRF		0X20
+LOOP1		CLRF		0X21
+LOOP2		DECFSZ		0X21,1
+		GOTO		LOOP2
+		DECFSZ		0X20,1
+		GOTO		LOOP1
+		RETURN
+
+		END	
